@@ -814,6 +814,31 @@ def emscript_fast(infile, settings, outfile, libraries=[], compiler_engine=None,
     #if DEBUG: print >> sys.stderr, "META", metadata
     #if DEBUG: print >> sys.stderr, "meminit", mem_init
 
+    # Strip functions to exclude from LLVM output
+    # This must be done as soon as possible, before we build function tables
+    # based on the functions in the js
+    rmfuncs = set(settings['DEAD_FUNCTIONS'])
+    if len(rmfuncs) > 0:
+        if DEBUG: logging.debug('Checking for dead functions')
+        funclines = funcs.split('\n')
+        new_funclines = []
+        infunc = False
+        shouldrm = False
+        for line in funclines:
+          if line.startswith('function '):
+            assert not infunc
+            infunc = True
+            funcname = line[len('function '):line.index('(')]
+            if funcname in rmfuncs:
+              if DEBUG: logging.debug('  Stripping ' + funcname)
+              shouldrm = True
+          if not shouldrm:
+            new_funclines.append(line)
+          if line.startswith('}'):
+            assert infunc
+            infunc = shouldrm = False
+        funcs = '\n'.join(new_funclines)
+
     # if emulating pointer casts, force all tables to the size of the largest
     if settings['EMULATE_FUNCTION_POINTER_CASTS']:
       max_size = 0
