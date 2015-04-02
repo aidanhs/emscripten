@@ -6135,23 +6135,21 @@ def process(filename):
     def test(expected, args=[], no_build=False):
       self.do_run(src, expected, args=args, no_build=no_build)
       return open(self.in_dir('src.cpp.o.js')).read()
-    has_fn_names = self.run_name in ['default', 'asm1', 'asm2g']
+    has_comments = self.run_name in ['default', 'asm1']
 
     # Sanity check that it works and the dead function is emitted
     js = test('*1*', ['x'])
-    if has_fn_names: assert 'function _unused(' in js
-    js = test('*2*')
-    if has_fn_names: assert 'function _unused(' in js
+    test('*2*', no_build=True)
+    if has_comments: assert 'function _unused($' in js
 
-    # Kill off the dead function, still works and it is not emitted
+    # Kill off the dead function, still works and is emitted as a stub
     Settings.DEAD_FUNCTIONS = ['_unused']
 
     js = test('*2*')
-    if has_fn_names: assert 'function _unused($' not in js # no compiled code
-    if has_fn_names: assert 'function _unused()' in js # lib-generated stub
+    if has_comments: assert 'Dead function _unused stripped' in js # stub comment
 
     # Run the same code with argc that uses the dead function, see abort
-    test('dead function: unused', args=['x'], no_build=True)
+    test('abort() at Error', args=['x'], no_build=True)
 
     Settings.DEAD_FUNCTIONS = []
 

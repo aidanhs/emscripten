@@ -824,7 +824,13 @@ def emscript_fast(infile, settings, outfile, libraries=[], compiler_engine=None,
         new_funclines = []
         infunc = False
         shouldrm = False
-        for line in funclines:
+        for i, line in enumerate(funclines):
+          # The only lines we don't add are the *body* of the removed function -
+          # they get replaced by a comment, an abort and (if appropriate) a
+          # return value.
+          if shouldrm and not line.startswith('}'):
+            continue
+          new_funclines.append(line)
           if line.startswith('function '):
             assert not infunc
             infunc = True
@@ -832,10 +838,17 @@ def emscript_fast(infile, settings, outfile, libraries=[], compiler_engine=None,
             if funcname in rmfuncs:
               if DEBUG: logging.debug('  Stripping ' + funcname)
               shouldrm = True
-          if not shouldrm:
-            new_funclines.append(line)
-          if line.startswith('}'):
+              # Add parameter type hints to comply with asm.js
+              num_params = line.count('$')
+              new_funclines.extend(funclines[i+1:i+1+num_params])
+              # New body of function
+              new_funclines.append('/* Dead function %s stripped */' % (funcname,))
+              new_funclines.append('_abort();')
+          elif line.startswith('}'):
             assert infunc
+            # If the original function had a return, make a return
+            if shouldrm and funclines[i-1].strip().startswith('return '):
+                new_funclines.insert(-1, 'return 0;')
             infunc = shouldrm = False
         funcs = '\n'.join(new_funclines)
 
