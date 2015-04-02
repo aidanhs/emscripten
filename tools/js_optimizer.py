@@ -9,7 +9,7 @@ __rootpath__ = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 def path_from_root(*pathelems):
   return os.path.join(__rootpath__, *pathelems)
 
-NATIVE_PASSES = set(['asm', 'asmPreciseF32', 'receiveJSON', 'emitJSON', 'eliminate', 'eliminateMemSafe', 'simplifyExpressions', 'simplifyIfs', 'optimizeFrounds', 'registerize', 'registerizeHarder', 'minifyNames', 'minifyLocals', 'minifyWhitespace', 'cleanup', 'asmLastOpts', 'last', 'noop', 'closure'])
+NATIVE_PASSES = set(['asm', 'asmPreciseF32', 'receiveJSON', 'emitJSON', 'eliminateDeadFuncs', 'eliminate', 'eliminateMemSafe', 'simplifyExpressions', 'simplifyIfs', 'optimizeFrounds', 'registerize', 'registerizeHarder', 'minifyNames', 'minifyLocals', 'minifyWhitespace', 'cleanup', 'asmLastOpts', 'last', 'noop', 'closure'])
 
 JS_OPTIMIZER = path_from_root('tools', 'js-optimizer.js')
 
@@ -451,6 +451,8 @@ EMSCRIPTEN_FUNCS();
       shared.logging.debug('js optimizer using native')
       assert not source_map # XXX need to use js optimizer
       commands = map(lambda filename: [get_native_optimizer(), filename] + passes, filenames)
+      print >> sys.stderr, ' '.join(commands[0])
+      import pdb; pdb.set_trace()
     #print [' '.join(command) for command in commands]
 
     cores = min(cores, len(filenames))

@@ -817,40 +817,40 @@ def emscript_fast(infile, settings, outfile, libraries=[], compiler_engine=None,
     # Strip functions to exclude from LLVM output
     # This must be done as soon as possible, before we build function tables
     # based on the functions in the js
-    rmfuncs = set(settings['DEAD_FUNCTIONS'])
-    if len(rmfuncs) > 0:
-        if DEBUG: logging.debug('Checking for dead functions')
-        funclines = funcs.split('\n')
-        new_funclines = []
-        infunc = False
-        shouldrm = False
-        for i, line in enumerate(funclines):
-          # The only lines we don't add are the *body* of the removed function -
-          # they get replaced by a comment, an abort and (if appropriate) a
-          # return value.
-          if shouldrm and not line.startswith('}'):
-            continue
-          new_funclines.append(line)
-          if line.startswith('function '):
-            assert not infunc
-            infunc = True
-            funcname = line[len('function '):line.index('(')]
-            if funcname in rmfuncs:
-              if DEBUG: logging.debug('  Stripping ' + funcname)
-              shouldrm = True
-              # Add parameter type hints to comply with asm.js
-              num_params = line.count('$')
-              new_funclines.extend(funclines[i+1:i+1+num_params])
-              # New body of function
-              new_funclines.append('/* Dead function %s stripped */' % (funcname,))
-              new_funclines.append('_abort();')
-          elif line.startswith('}'):
-            assert infunc
-            # If the original function had a return, make a return
-            if shouldrm and funclines[i-1].strip().startswith('return '):
-                new_funclines.insert(-1, 'return 0;')
-            infunc = shouldrm = False
-        funcs = '\n'.join(new_funclines)
+    #rmfuncs = set(settings['DEAD_FUNCTIONS'])
+    #if len(rmfuncs) > 0:
+    #    if DEBUG: logging.debug('Checking for dead functions')
+    #    funclines = funcs.split('\n')
+    #    new_funclines = []
+    #    infunc = False
+    #    shouldrm = False
+    #    for i, line in enumerate(funclines):
+    #      # The only lines we don't add are the *body* of the removed function -
+    #      # they get replaced by a comment, an abort and (if appropriate) a
+    #      # return value.
+    #      if shouldrm and not line.startswith('}'):
+    #        continue
+    #      new_funclines.append(line)
+    #      if line.startswith('function '):
+    #        assert not infunc
+    #        infunc = True
+    #        funcname = line[len('function '):line.index('(')]
+    #        if funcname in rmfuncs:
+    #          if DEBUG: logging.debug('  Stripping ' + funcname)
+    #          shouldrm = True
+    #          # Add parameter type hints to comply with asm.js
+    #          num_params = line.count('$')
+    #          new_funclines.extend(funclines[i+1:i+1+num_params])
+    #          # New body of function
+    #          new_funclines.append('/* Dead function %s stripped */' % (funcname,))
+    #          new_funclines.append('_abort();')
+    #      elif line.startswith('}'):
+    #        assert infunc
+    #        # If the original function had a return, make a return
+    #        if shouldrm and funclines[i-1].strip().startswith('return '):
+    #            new_funclines.insert(-1, 'return 0;')
+    #        infunc = shouldrm = False
+    #    funcs = '\n'.join(new_funclines)
 
     # if emulating pointer casts, force all tables to the size of the largest
     if settings['EMULATE_FUNCTION_POINTER_CASTS']:

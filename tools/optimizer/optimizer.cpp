@@ -3869,6 +3869,26 @@ void asmLastOpts(Ref ast) {
   });
 }
 
+// Contrary to the name, this does not eliminate truly dead functions, only
+// those marked as such with DEAD_FUNCTIONS
+void eliminateDeadFuncs(Ref ast) {
+  fprintf(stderr, "===================\n\n\n\n\n\n");
+  traverseFunctions(ast, [&](Ref fun) {
+    //if (
+    fprintf(stderr, "=== ");
+    fprintf(stderr, "= %d,%d ", fun.get()->type, fun.get()->size());
+    fprintf(stderr, "= %d ", fun[0].get()->type);
+    fprintf(stderr, "= %s ", fun[0].get()->getCString());
+    fprintf(stderr, "= %d ", fun[1].get()->type);
+    fprintf(stderr, "= %s ", fun[1].get()->getCString());
+    fprintf(stderr, "= %d ", fun[2].get()->type);
+    fprintf(stderr, "= %s ", fun[2].get()->getCString());
+    fprintf(stderr, "= %d ", fun[3].get()->type);
+    fprintf(stderr, "= %s ", fun[3].get()->getCString());
+    fprintf(stderr, "= ===\n");
+  });
+}
+
 //==================
 // Main
 //==================
@@ -3925,6 +3945,7 @@ int main(int argc, char **argv) {
     if (str == "asm") {} // the default for us
     else if (str == "asmPreciseF32") {}
     else if (str == "receiveJSON" || str == "emitJSON") {}
+    else if (str == "eliminateDeadFuncs") eliminateDeadFuncs(doc);
     else if (str == "eliminate") eliminate(doc);
     else if (str == "eliminateMemSafe") eliminateMemSafe(doc);
     else if (str == "simplifyExpressions") simplifyExpressions(doc);
